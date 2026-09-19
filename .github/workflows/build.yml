@@ -1,0 +1,52 @@
+name: Start build
+
+on:
+  workflow_dispatch:
+    
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+       - name:  🔄 Checkout Code
+         uses: actions/checkout@v5
+
+       - name: 📦 Install Dependencies
+         run: |
+          sudo apt update -y
+          sudo apt install bc cpio flex bison aptitude git python-is-python3 tar aria2 perl wget curl lz4 libssl-dev -y
+
+
+       - name: 🔧 Clone Toolchains
+         run: |
+           wget -O llvm.tar.zst https://github.com/Ylarod/setup-ndk-clang/releases/download/prebuilt/clang-linux-x86-ndk-r29-r563880c.tar.zst
+           mkdir llvm-21; cd llvm-21
+           tar -I unzstd -xf ../llvm.tar.zst
+           rm ../llvm.tar.zst
+           cd ..
+
+       - name: 🛠️ Build Kernel
+         run: |
+           mkdir out
+           export ARCH=arm64        
+           export PATH=$(pwd)/llvm-21/bin:$PATH
+           export KBUILD_BUILD_USER=Llorens
+           export KBUILD_BUILD_HOST=MKernel
+           make O=out ARCH=arm64 vendor/kona-perf_defconfig
+           make -j$(nproc --all) O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 CC=clang \
+           CROSS_COMPILE=aarch64-linux-gnu-
+
+       - name: 📂 Clone Anykernel3 & Zip
+         run: |
+          git clone --depth=1 https://github.com/r0xx3z/Ak3.git -b r8q AnyKernel3
+          cp out/arch/arm64/boot/Image AnyKernel3/Image.gz
+          cp out/arch/arm64/boot/dtbo.img AnyKernel3/dtbo.img
+          cp out/arch/arm64/boot/dtb.img AnyKernel3/dtb.img
+          cd AnyKernel3
+          zip -r "../MKernel_r8q-c2q.zip" *
+
+       - name: 📤 Upload Flashable zip
+         uses: actions/upload-artifact@v5
+         with:
+          name: MKernel_r8q-c2q
+          path: AnyKernel3/*
+          
