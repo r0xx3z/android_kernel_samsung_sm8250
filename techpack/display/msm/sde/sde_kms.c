@@ -303,9 +303,7 @@ static int sde_kms_enable_vblank(struct msm_kms *kms, struct drm_crtc *crtc)
 
 static void sde_kms_disable_vblank(struct msm_kms *kms, struct drm_crtc *crtc)
 {
-#if defined(CONFIG_DISPLAY_SAMSUNG) // case 04436106
 	int ret = 0;
-#endif
 
 	SDE_ATRACE_BEGIN("sde_kms_disable_vblank");
 	ret = sde_crtc_vblank(crtc, false);
