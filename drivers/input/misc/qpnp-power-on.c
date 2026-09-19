@@ -2350,7 +2350,7 @@ static struct attribute_group sec_powerkey_attr_group = {
 	.attrs = sec_powerkey_attrs,
 };
 
-#ifdef CONFIG_SEC_PM_DEBUG
+#ifdef CONFIG_SEC_PM
 static int qpnp_wake_enabled(const char *val, const struct kernel_param *kp)
 {
 	int ret = 0;
